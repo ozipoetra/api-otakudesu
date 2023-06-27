@@ -1,6 +1,8 @@
 const { default: Axios } = require("axios");
 const cheerio = require("cheerio");
-const baseUrl = require("../constant/url");
+//const baseUrl = require("../constant/url");
+const baseUrl = "https://otakudesu.cam";
+//const endUrl = "_x_tr_sl=auto&_x_tr_tl=null";
 const qs = require("qs");
 
 const episodeHelper = {
@@ -16,7 +18,7 @@ const episodeHelper = {
                     'Origin': baseUrl,
                     'Cookie':'_ga=GA1.2.826878888.1673844093; _gid=GA1.2.1599003702.1674031831; _gat=1',
                     'Referer': baseUrl,
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:101.0) Gecko/20100101 Firefox/101.0',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 13; Redmi Note 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Mobile Safari/537.36',
                     'X-Requested-With': 'XMLHttpRequest',
                     // 'Host': baseUrl,
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
@@ -44,7 +46,7 @@ const episodeHelper = {
                     'Origin': baseUrl,
                     'Cookie':'_ga=GA1.2.826878888.1673844093; _gid=GA1.2.1599003702.1674031831; _gat=1',
                     'Referer': baseUrl,
-                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:101.0) Gecko/20100101 Firefox/101.0',
+                    'User-Agent': 'Mozilla/5.0 (Linux; Android 13; Redmi Note 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Mobile Safari/537.36',
                     'X-Requested-With': 'XMLHttpRequest',
                     // 'Host': baseUrl,
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
@@ -91,7 +93,7 @@ const episodeHelper = {
                     $(this).find('.yondarkness-item').eq(num).find('a').each((idx, el) => {
                         const _list = {
                             host: $(el).text(),
-                            link: $(el).attr("href"),
+                            link: decodeURIComponent($(el).attr("href").split("u=")[1]),
                         };
                         download_links.push(_list);
                         response = { quality, size, download_links };
@@ -104,7 +106,7 @@ const episodeHelper = {
                     $(this).find('.anime-item').eq(num).find('a').each((idx, el) => {
                         const _list = {
                             host: $(el).text(),
-                            link: $(el).attr("href"),
+                            link: decodeURIComponent($(el).attr("href").split("u=",2)[1]),
                         };
                         download_links.push(_list);
                         response = { quality, size, download_links };
@@ -127,7 +129,7 @@ const episodeHelper = {
             $(this).find("li").eq(num).find("a").each(function () {
                 const _list = {
                     host: $(this).text(),
-                    link: $(this).attr("href"),
+                    link: decodeURIComponent($(this).attr("href").split("u=",2)[1]),
                 };
                 download_links.push(_list);
                 response = { quality, size, download_links };
@@ -151,7 +153,7 @@ const episodeHelper = {
             .each(function () {
               const _list = {
                 host: $(this).text(),
-                link: $(this).attr("href"),
+                link: decodeURIComponent($(this).attr("href").split("u=",2)[1]),
               };
               download_links.push(_list);
               response = { quality, size, download_links };

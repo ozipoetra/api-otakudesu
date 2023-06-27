@@ -1,14 +1,16 @@
 const services = require("../helper/sevice")
 const cheerio = require("cheerio")
 const baseUrl = require("../constant/url")
+const origin = "https://otakudesu.cam"
 const episodeHelper = require("../helper/episodeHelper")
+const endUrl = "_x_tr_sl=auto&_x_tr_tl=null"
 
 const Services = {
     getOngoing: async (req, res) => {
         const page = req.params.page
         let url = page === 1 ? `${baseUrl}/ongoing-anime/` : `${baseUrl}/ongoing-anime/page/${page}/`
         try {
-            const response = await services.fetchService(url, res)
+            const response = await services.fetchService(url+`?${endUrl}`, res)
             if (response.status === 200) {
                 const $ = cheerio.load(response.data)
                 const element = $(".rapi")
@@ -16,12 +18,12 @@ const Services = {
                 let title, thumb, total_episode, updated_on, updated_day, endpoint
     
                 element.find("ul > li").each((index, el) => {
-                    title = $(el).find("h2").text().trim()
+                    title = $(el).find("h2").text().trim().replace(/\s+/g," ")
                     thumb = $(el).find("img").attr("src")
-                    total_episode = $(el).find(".epz").text()
-                    updated_on = $(el).find(".newnime").text()
-                    updated_day = $(el).find(".epztipe").text()
-                    endpoint = $(el).find(".thumb > a").attr("href").replace(`${baseUrl}/anime/`, "").replace("/", "")
+                    total_episode = $(el).find(".epz").text().replace(/\n\s+/g,"")
+                    updated_on = $(el).find(".newnime").text().replace(/\n\s+/g,"")
+                    updated_day = $(el).find(".epztipe").text().replace(/\n\s+/g,"")
+                    endpoint = $(el).find(".thumb > a").attr("href").replace(`${baseUrl}/anime/`, "").replace("/", "").split("?",1).join()
     
                     ongoing.push({
                         title,
@@ -34,6 +36,7 @@ const Services = {
                 })
                 return res.status(200).json({
                     status: true,
+                    ozip: "ozip",
                     message: "success",
                     ongoing,
                     currentPage: page
@@ -57,7 +60,7 @@ const Services = {
         let url = page === 1 ? `${baseUrl}/complete-anime/` : `${baseUrl}/complete-anime/page/${page}/`
     
         try {
-            const response = await services.fetchService(url, res)
+            const response = await services.fetchService(url+`?${endUrl}`, res)
             if (response.status === 200) {
                 const $ = cheerio.load(response.data)
                 const element = $(".rapi")
@@ -65,12 +68,12 @@ const Services = {
                 let title, thumb, total_episode, updated_on, score, endpoint
     
                 element.find("ul > li").each((index, el) => {
-                    title = $(el).find("h2").text().trim()
+                    title = $(el).find("h2").text().trim().replace(/\s+/g," ")
                     thumb = $(el).find("img").attr("src")
-                    total_episode = $(el).find(".epz").text()
-                    updated_on = $(el).find(".newnime").text()
-                    score = $(el).find(".epztipe").text().trim()
-                    endpoint = $(el).find(".thumb > a").attr("href").replace(`${baseUrl}/anime/`, "").replace("/", "")
+                    total_episode = $(el).find(".epz").text().replace(/\n\s+/g,"")
+                    updated_on = $(el).find(".newnime").text().replace(/\n\s+/g,"")
+                    score = $(el).find(".epztipe").text().trim().replace(/\n\s+/g,"")
+                    endpoint = $(el).find(".thumb > a").attr("href").replace(`${baseUrl}/anime/`, "").replace("/", "").split("?",1).join()
     
                     completed.push({
                         title,
@@ -104,7 +107,7 @@ const Services = {
     },
     getSearch: async (req, res) => {
         const query = req.params.q
-        let url = `${baseUrl}/?s=${query}&post_type=anime`
+        let url = `${baseUrl}/?s=${query}&post_type=anime&_x_tr_sl=auto&_x_tr_tl=null`
         try {
             const response = await services.fetchService(url, res)
             if (response.status === 200) {
@@ -114,12 +117,12 @@ const Services = {
                 let title, thumb, genres, status, rating, endpoint
     
                 element.find("li").each((index, el) => {
-                    title = $(el).find("h2 > a").text()
+                    title = $(el).find("h2 > a").text().replace(/\n\s+/g,"")
                     thumb = $(el).find("img").attr("src")
                     genres = $(el).find(".set > a").text().match(/[A-Z][a-z]+/g)
                     status = $(el).find(".set").text().match("Ongoing") || $(el).find(".set").text().match("Completed")
-                    rating = $(el).find(".set").text().replace(/^\D+/g, '') || null
-                    endpoint = $(el).find("h2 > a").attr("href").replace(`${baseUrl}/anime/`, "").replace("/", "")
+                    rating = $(el).find(".set").text().replace(/^\D+/g, '').replace(/\n\s+/g,"") || null
+                    endpoint = $(el).find("h2 > a").attr("href").replace(`${baseUrl}/anime/`, "").replace("/", "").split("?",1).join()
     
                     search.push({
                         title,
@@ -151,18 +154,18 @@ const Services = {
         }
     },
     getAnimeList: async (req, res) => {
-        let url = `${baseUrl}/anime-list-2/`
+        let url = `${baseUrl}/anime-list/`
         try {
-            const response = await services.fetchService(url, res)
+            const response = await services.fetchService(url+`?${endUrl}`, res)
             if (response.status === 200) {
                 const $ = cheerio.load(response.data)
                 const element = $("#abtext")
                 let anime_list = []
                 let title, endpoint
     
-                element.find(".penzbar").each((index, el) => {
-                    title = $(el).find("a").text() || null
-                    endpoint = $(el).find("a").attr("href").replace(`${baseUrl}/anime`)
+                element.find(".jdlbar").each((index, el) => {
+                    title = $(el).find("a").text().replace(/\n\s+/g,"") || null
+                    endpoint = $(el).find("a").attr("href").replace(`${baseUrl}/anime/`, "").replace("/", "").split("?",1).join()
     
                     anime_list.push({
                         title,
@@ -197,7 +200,7 @@ const Services = {
         let url = `${baseUrl}/anime/${endpoint}/`
     
         try {
-            const response = await services.fetchService(url, res)
+            const response = await services.fetchService(url+`?${endUrl}`, res)
             if (response.status === 200) {
                 const $ = cheerio.load(response.data)
                 const infoElement = $(".fotoanime")
@@ -225,8 +228,8 @@ const Services = {
     
                 episodeElement.find("li").each((index, el) => {
                     episode_title = $(el).find("span > a").text()
-                    episode_endpoint = $(el).find("span > a").attr("href").replace(`${baseUrl}/episode/`, "").replace(`${baseUrl}/batch/`, "").replace(`${baseUrl}/lengkap/`, "").replace("/", "")
-                    episode_date = $(el).find(".zeebr").text()
+                    episode_endpoint = $(el).find("span > a").attr("href").replace(`/episode/`, "").replace(`/batch/`, "").replace(`/lengkap/`, "").replace(baseUrl,'').replace("/", "").split("?",1).join()
+                    episode_date = $(el).find(".zeebr").text().replace(/\n\s+/g,"")
     
                     episode_list.push({
                         episode_title,
@@ -280,7 +283,7 @@ const Services = {
         const url = `${baseUrl}/episode/${endpoint}`;
 
         try {
-            const response = await services.fetchService(url, res);
+            const response = await services.fetchService(url+`?${endUrl}`, res);
             const $ = cheerio.load(response.data);
             const streamElement = $("#lightsVideo").find("#embed_holder");
             const obj = {};
@@ -292,7 +295,7 @@ const Services = {
             let link_ref, title_ref
             $(".flir > a").each((index, el) => {
                 title_ref = $(el).text()
-                link_ref = $(el).attr("href").replace(`${baseUrl}/anime/`, "").replace(`${baseUrl}/episode/`, "").replace("/", "")
+                link_ref = $(el).attr("href").replace(`/anime/`, "").replace(`/episode/`, "").replace(baseUrl,"").replace("/", "").split("?",1).join()
     
                 obj.relative.push({
                     title_ref,
@@ -304,7 +307,7 @@ const Services = {
             let list_episode_title, list_episode_endpoint
             $("#selectcog > option").each((index, el) => {
                 list_episode_title = $(el).text()
-                list_episode_endpoint = $(el).attr("value").replace(`${baseUrl}/episode/`, "").replace("/", "")
+                list_episode_endpoint = $(el).attr("value").replace(`/episode/`, "").replace(origin,"").replace("/", "").split("?",1).join()
                 obj.list_episode.push({
                     list_episode_title,
                     list_episode_endpoint
@@ -375,7 +378,7 @@ const Services = {
         const fullUrl = `${baseUrl}/batch/${endpoint}`;
         console.log(fullUrl);
         try {
-            const response = await services.fetchService(fullUrl, res)
+            const response = await services.fetchService(fullUrl+`?${endUrl}`, res)
             const $ = cheerio.load(response.data);
             const batch = {};
             batch.title = $(".batchlink > h4").text();
@@ -397,13 +400,13 @@ const Services = {
     getGenreList: async (req, res) => {
         const url = `${baseUrl}/genre-list/`
         try {
-            const response = await services.fetchService(url, res)
+            const response = await services.fetchService(url+`?${endUrl}`, res)
             if (response.status === 200) {
                 const $ = cheerio.load(response.data)
                 let genres = [], genre, endpoint
                 $('.genres').find("a").each((index, el) => {
                     genre = $(el).text()
-                    endpoint = $(el).attr('href').replace("/genres/", "").replace("/", "")
+                    endpoint = $(el).attr('href').replace(baseUrl,"").replace("/genres/", "").replace("/", "").split("?",1).join()
         
                     genres.push({
                         genre,
@@ -435,20 +438,20 @@ const Services = {
         const url = page === 1 ? `${baseUrl}/genres/${genre}` : `${baseUrl}/genres/${genre}/page/${page}`
         
         try {
-            const response = await services.fetchService(url, res)
+            const response = await services.fetchService(url+`?${endUrl}`, res)
     
             if (response.status === 200) {
                 const $ = cheerio.load(response.data)
                 let genreAnime = [], title, link, studio, episode, rating, thumb, season, sinopsis, genre
                 $('.col-anime-con').each((index, el) => {
-                    title = $(el).find(".col-anime-title > a").text()
-                    link = $(el).find(".col-anime-title > a").attr("href").replace(`${baseUrl}/anime/`, "")
-                    studio = $(el).find(".col-anime-studio").text()
-                    episode = $(el).find(".col-anime-eps").text()
-                    rating = $(el).find(".col-anime-rating").text() || null
+                    title = $(el).find(".col-anime-title > a").text().replace(/\n\s+/g,"")
+                    link = $(el).find(".col-anime-title > a").attr("href").replace(`${baseUrl}/anime/`, "").split("?",1).join()
+                    studio = $(el).find(".col-anime-studio").text().replace(/\n\s+/g,"")
+                    episode = $(el).find(".col-anime-eps").text().replace(/\n\s+/g,"")
+                    rating = $(el).find(".col-anime-rating").text().replace(/\n\s+/g,"") || null
                     thumb = $(el).find(".col-anime-cover > img").attr("src")
-                    season = $(el).find(".col-anime-date").text()
-                    sinopsis = $(el).find(".col-synopsis").text()
+                    season = $(el).find(".col-anime-date").text().replace(/\n\s+/g,"")
+                    sinopsis = $(el).find(".col-synopsis").text().replace(/\n\s+/g,"")
                     genre = $(el).find(".col-anime-genre").text().trim().split(",")
     
                     genreAnime.push({

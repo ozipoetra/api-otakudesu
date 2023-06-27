@@ -1,4 +1,4 @@
-# otakudesu-anime-api
+# API OTAKU
 this is my first time web scraping, all this data API from https://otakudesu.bid/
 
 # Usage
