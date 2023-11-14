@@ -289,7 +289,7 @@ const Services = {
             const obj = {};
             obj.title = $(".venutama > h1").text();
             obj.baseUrl = url;
-            obj.id = url.replace(url.baseUrl, "");
+            obj.id = url.replace(url.baseUrl, "").replace(`/anime/`, "").replace(`/episode/`, "").replace(baseUrl,"").replace("/", "").split("?",1).join();
             obj.streamLink = streamElement.find(".responsive-embed-stream > iframe").attr("src");
             obj.relative = []
             let link_ref, title_ref
