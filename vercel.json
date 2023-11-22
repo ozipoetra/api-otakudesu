@@ -9,6 +9,9 @@
   "routes": [
     {
       "src": "/(.*)",
+      "headers": {
+ 	"cache-control": "public, s-maxage=14400"
+      },
       "dest": "index.js"
     }
   ]
